@@ -37,7 +37,7 @@ thr_fn(void *arg)
 int
 main(void)
 
-//creation of thread using thread id(ntid), having thread argument as NULL , at the address of thr_fun(function) , storing the thr_fun in NULL argument
+//creation of thread using thread id(ntid), attr having thread reseouce as NULL , at the address of thr_fun(function) , storing the thr_fun in NULL argument
 {
     int     err;
 
