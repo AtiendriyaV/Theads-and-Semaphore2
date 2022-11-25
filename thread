@@ -1,50 +1,59 @@
 https://www.cs.cmu.edu/afs/cs/academic/class/15492-f07/www/pthreads.html
 
-
-//header file
-#include "apue.h"
 #include <pthread.h>
+#include <stdio.h>
+#include <unistd.h>
 
-//giving pthread_t(system call a variable named ntid)
-pthread_t ntid;
+//initialization of function
 
-
-//calling the pointer function to which thread should work
-
-void
-printids(const char *s)
-
-//giving the structure value for the thread initialization and getting user id and process id of the main thread and self called thread
-
+void *inc_x(void *x_void_ptr)
 {
-    pid_t       pid;
-    pthread_t   tid;
 
-    pid = getpid();
-    tid = pthread_self();
-    printf("%s pid %lu tid %lu (0x%lx)\n", s, (unsigned long)pid,
-      (unsigned long)tid, (unsigned long)tid);
+int *x_ptr = (int *)x_void_ptr; 
+
+sleep(10);
+
+while(++(*x_ptr) < 10);
+  printf(" value of *xptr is passed\n");
+ //increase the value of x*ptr till 10 using for loop
+
+return NULL;
 }
 
-//calling the argument to get the new thread id 
-void *
-thr_fn(void *arg)
+
+int main()
 {
-    printids("new thread: ");
-    return((void *)0);
+
+     int x=0, val , p=0;
+     
+
+     pthread_t inc_x_thread;
+	//pthread_t inc_y_thread;
+
+	/* create a thread which executes count_x(&x) */
+	val = pthread_create(&inc_x_thread,NULL,inc_x,&x);
+    printf(" val is : %d \n" , val);
+	if(val !=0) 
+	{
+
+		fprintf(stderr, "Error creating thread\n");
+		return 1;
+
+	}
+
+   for(x=1;x<=3;x++);
+  {
+
+   p = x*x;
+   
+   printf("x: %d,p : %d\n", x, p);
+   }
+
+	return 0;
+
+
+   
 }
 
-int
-main(void)
 
-//creation of thread using thread id(ntid), attr having thread reseouce as NULL , at the address of thr_fun(function) , storing the thr_fun in NULL argument
-{
-    int     err;
 
-    err = pthread_create(&ntid, NULL, thr_fn, NULL);
-    if (err != 0)
-        err_exit(err, "can't create thread");
-    printids("main thread:");
-    sleep(1);
-    exit(0);
-}
