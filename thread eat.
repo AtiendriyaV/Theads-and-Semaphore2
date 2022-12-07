@@ -1,0 +1,83 @@
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
+
+pthread_mutex_t mutexcook; //cook
+pthread_cond_t condava; //material available
+
+int Material = 0;    //material available 
+ 
+void* m_g(void* arg)  //m_g :- material_gather
+{
+    for (int i = 0; i <5; i++) 
+    {
+        pthread_mutex_lock(&mutexcook);
+        Material+= 10;
+        printf("Material Thread ID %ld : \n", pthread_self());
+        printf("...... Gathered Material... %d\n", Material);
+        pthread_mutex_unlock(&mutexcook);
+        pthread_cond_signal(&condava);
+        sleep(3);
+    }
+}
+
+void* cook(void* arg) 
+{
+    pthread_mutex_lock(&mutexcook);
+    while (Material < 30) 
+    {
+        printf("Cook : While (m_g < 25)...........................\n");
+        printf("Cook Thread ID %ld : No material . Waiting...\n", pthread_self());
+        pthread_cond_wait(&condava, &mutexcook);
+        printf("Cook : Notified to m_g Thread......................\n");
+       
+    }
+    Material = Material-5;
+    printf(" Cook Thread : Material_gathered. Now material left with : %d\n", Material);
+    pthread_mutex_unlock(&mutexcook);
+}
+
+int main(int argc, char* argv[]) 
+{
+    pthread_t th[4];
+    pthread_mutex_init(&mutexcook, NULL);
+    pthread_cond_init(&condava, NULL);
+
+    for (int i = 0; i < 2; i++) 
+    {
+        if (i == 1) 
+        {
+            if (pthread_create(&th[i], NULL, &m_g, NULL) != 0) 
+            {
+                perror("Failed to create thread");
+            }
+        } 
+        else 
+        {
+            if (pthread_create(&th[i], NULL, &cook, NULL) != 0) 
+            {
+                perror("Failed to create thread");
+            }
+        }
+    }
+
+    for (int i = 0; i < 2; i++) 
+    {
+        if (pthread_join(th[i], NULL) != 0) 
+        {
+            perror("Failed to join thread");
+        }
+        else
+        {
+          printf("=======================================\n");
+	  printf("Thread ID : %ld is Served to guest\n", th[i]);
+	  printf("======================================\n");
+        }  
+    }
+
+    pthread_mutex_destroy(&mutexcook);
+    pthread_cond_destroy(&condava);
+    return 0;
+}
